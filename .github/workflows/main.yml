@@ -16,3 +16,8 @@ jobs:
       - name: Correr pruebas
         id: correr-pruebas
         run: python -m unittest -v blacklist_app/tests/unit/__init__.py
+      - name: Cálculo de cubrimiento
+        id: cubrimiento
+        run: |
+            coverage run -m unittest blacklist_app/tests/unit/__init__.py
+            coverage report -m

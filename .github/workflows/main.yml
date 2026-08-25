@@ -1,0 +1,18 @@
+name: Pruebas unitarias
+on:
+  push:
+    branches: [master]
+jobs:
+  job1:
+    name: Pruebas
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repositorio
+        uses: actions/checkout@v2
+      - name: Configuracion entorno
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+      - name: Correr pruebas
+        id: correr-pruebas
+        run: python -m unittest -v test/unit/__init__.py

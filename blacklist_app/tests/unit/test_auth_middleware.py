@@ -31,5 +31,5 @@ def test_token_incorrecto(client):
     assert resp.status_code == 401
 
 def test_token_correcto_deja_pasar(client):
-    resp = client.get('/protegido', headers={"Authorization": "Bearer test_token_pass"})
+    resp = client.get('/protegido', headers={"Authorization":  "bearer_token_test"})
     assert resp.status_code == 200

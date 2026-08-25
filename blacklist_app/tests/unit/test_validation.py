@@ -6,7 +6,7 @@ from src.models.errors import BadRequestError
 
 def test_validate_uuid_con_uuid_valido():
     resultado = validate_uuid("123e4567-e89b-12d3-a456-426614174000")
-    assert resultado is False  
+    assert resultado is True  
 
 
 def test_validate_uuid_con_uuid_invalido():
@@ -17,7 +17,7 @@ def test_validate_uuid_con_uuid_invalido():
 def test_get_client_ip_con_header_forwarded():
     request = Mock()
     request.headers.get.return_value = "1.1.1.1, 2.2.2.2"
-    assert get_client_ip(request) == "2.2.2.2" 
+    assert get_client_ip(request) == "1.1.1.1" 
 
 
 def test_get_client_ip_sin_header():

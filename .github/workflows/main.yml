@@ -15,4 +15,4 @@ jobs:
           python-version: '3.8'
       - name: Correr pruebas
         id: correr-pruebas
-        run: python -m unittest -v test/unit/__init__.py
+        run: python -m unittest -v blacklist_app/tests/unit/__init__.py

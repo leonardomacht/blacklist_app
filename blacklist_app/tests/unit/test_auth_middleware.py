@@ -15,7 +15,7 @@ def client():
 
 def test_sin_header_authorization(client):
     resp = client.get('/protegido')
-    assert resp.status_code == 200 
+    assert resp.status_code == 401
 
 def test_header_mal_formado(client):
     resp = client.get('/protegido', headers={"Authorization": "Token test"})

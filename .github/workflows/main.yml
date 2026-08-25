@@ -9,19 +9,19 @@ jobs:
     steps:
       - name: Checkout Repositorio
         uses: actions/checkout@v2
+
       - name: Configuracion entorno
         uses: actions/setup-python@v2
         with:
-          python-version: '3.8'
-      - name: Instalación de librerías y dependencias
-        run: |
-            python -m pip install --upgrade pip
-            pip install -r requirements.txt
-      - name: Correr pruebas
-        id: correr-pruebas
-        run: python -m unittest -v blacklist_app/tests/unit/__init__.py
-      - name: Cálculo de cubrimiento
-        id: cubrimiento
-        run: |
-            coverage run -m unittest blacklist_app/tests/unit/__init__.py
-            coverage report -m
+          python-version: '3.10'
+
+      - name: Instalar Poetry
+        run: pip install poetry
+
+      - name: Instalar dependencias
+        working-directory: ./blacklist_app
+        run: poetry install --with dev
+
+      - name: Correr pruebas con cobertura
+        working-directory: ./blacklist_app
+        run: poetry run pytest --cov=src --cov-report=term-missing --cov-fail-under=90

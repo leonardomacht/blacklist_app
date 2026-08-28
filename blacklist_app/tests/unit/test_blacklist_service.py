@@ -1,7 +1,8 @@
 from unittest.mock import patch, MagicMock
 from datetime import datetime
+import pytest
 
-@patch("src.services.blacklist_service.BlacklistRepositori")
+@patch("src.services.blacklist_service.BlacklistRepository")
 def test_add_to_blacklist_exitoso(MockRepo):
     from src.services.blacklist_service import BlacklistService
 
@@ -16,7 +17,7 @@ def test_add_to_blacklist_exitoso(MockRepo):
         email="test@test.com", app_uuid="uuid-1", blocked_reason="spam", ip_address="1.2.3.4"
     )
 
-    assert resultado["email"] == "test_otro@test.com" 
+    assert resultado["email"] == "test@test.com" 
 
 @patch("src.services.blacklist_service.BlacklistRepository")
 def test_add_to_blacklist_motivo_opcional(MockRepo):
@@ -47,3 +48,28 @@ def test_check_blacklist_email_existe(MockRepo):
 
     assert resultado["is_blacklisted"] is True
     assert resultado["blocked_reason"] == "spam"
+
+@patch("src.services.blacklist_service.BlacklistRepository")
+def test_check_blacklist_email_no_existe(MockRepo):
+    from src.services.blacklist_service import BlacklistService
+
+    MockRepo.return_value.get_by_email.return_value = None
+
+    service = BlacklistService()
+    resultado = service.check_blacklist("no_existe@test.com")
+
+    assert resultado["is_blacklisted"] is False
+    assert resultado["blocked_reason"] is None
+
+@patch("src.services.blacklist_service.BlacklistRepository")
+def test_add_to_blacklist_email_duplicado(MockRepo):
+    from src.services.blacklist_service import BlacklistService
+    from src.models.errors import ConflictError
+
+    MockRepo.return_value.create.side_effect = ConflictError("Email already blacklisted")
+
+    service = BlacklistService()
+    with pytest.raises(ConflictError):
+        service.add_to_blacklist(
+            email="test@test.com", app_uuid="uuid-1", blocked_reason="spam", ip_address="1.2.3.4"
+        )

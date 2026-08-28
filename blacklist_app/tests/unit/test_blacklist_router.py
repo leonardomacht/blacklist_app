@@ -56,7 +56,6 @@ def test_post_datos_invalidos_email_malo(client):
     })
     assert resp.status_code == 400
 
-
 def test_post_email_duplicado(client):
     with patch("src.routes.blacklist_router.blacklist_service") as mock_service:
         mock_service.add_to_blacklist.side_effect = ConflictError("Email ya existe")
@@ -65,3 +64,18 @@ def test_post_email_duplicado(client):
             "app_uuid": "123e4567-e89b-12d3-a456-426614174000"
         })
     assert resp.status_code == 409
+
+def test_post_error_inesperado(client):
+    with patch("src.routes.blacklist_router.blacklist_service") as mock_service:
+        mock_service.add_to_blacklist.side_effect = Exception("boom")
+        resp = client.post('/blacklists', headers=HEADERS, json={
+            "email": "test@test.com",
+            "app_uuid": "123e4567-e89b-12d3-a456-426614174000"
+        })
+    assert resp.status_code == 500
+
+def test_get_error_inesperado(client):
+    with patch("src.routes.blacklist_router.blacklist_service") as mock_service:
+        mock_service.check_blacklist.side_effect = Exception("boom")
+        resp = client.get('/blacklists/test@test.com', headers=HEADERS)
+    assert resp.status_code == 500

@@ -1,6 +1,7 @@
 from unittest.mock import patch, MagicMock
 from datetime import datetime
 from src.models.errors import NotFoundError, UnauthorizedError
+from src.db.models import Blacklist
 import pytest
 
 @patch("src.services.blacklist_service.BlacklistRepository")
@@ -90,3 +91,7 @@ def test_unauthorized_error_mensaje_default():
 def test_unauthorized_error_mensaje_personalizado():
     err = UnauthorizedError("Token inválido")
     assert err.message == "Token inválido"
+    
+def test_blacklist_repr():
+    b = Blacklist(id="1", email="test@test.com", app_uuid="uuid-1", ip_address="1.1.1.1")
+    assert repr(b) == "<Blacklist test@test.com>"

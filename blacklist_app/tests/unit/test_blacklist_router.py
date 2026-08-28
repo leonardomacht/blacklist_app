@@ -14,7 +14,7 @@ def client():
 
 def test_post_sin_body(client):
     resp = client.post('/blacklists', headers=HEADERS, json={})
-    assert resp.status_code == 500
+    assert resp.status_code == 400
 
 def test_post_datos_validos(client):
     with patch("src.routes.blacklist_router.blacklist_service") as mock_service:
@@ -25,7 +25,14 @@ def test_post_datos_validos(client):
             "email": "test@test.com",
             "app_uuid": "123e4567-e89b-12d3-a456-426614174000"
         })
-    assert resp.status_code == 200
+    assert resp.status_code == 201
+
+def test_post_sin_autenticacion(client):
+    resp = client.post('/blacklists', json={
+        "email": "test@test.com",
+        "app_uuid": "123e4567-e89b-12d3-a456-426614174000"
+    })
+    assert resp.status_code == 401
 
 def test_get_email_en_lista(client):
     with patch("src.routes.blacklist_router.blacklist_service") as mock_service:
@@ -35,3 +42,8 @@ def test_get_email_en_lista(client):
         resp = client.get('/blacklists/test@test.com', headers=HEADERS)
     assert resp.status_code == 200
     assert resp.get_json()["is_blacklisted"] is True
+
+def test_ping(client):
+    resp = client.get('/blacklists/ping')
+    assert resp.status_code == 200
+    assert resp.get_json()["message"] == "pong"

@@ -1,5 +1,6 @@
 from unittest.mock import patch, MagicMock
 from datetime import datetime
+from src.models.errors import NotFoundError, UnauthorizedError
 import pytest
 
 @patch("src.services.blacklist_service.BlacklistRepository")
@@ -73,3 +74,19 @@ def test_add_to_blacklist_email_duplicado(MockRepo):
         service.add_to_blacklist(
             email="test@test.com", app_uuid="uuid-1", blocked_reason="spam", ip_address="1.2.3.4"
         )
+
+def test_not_found_error_mensaje_default():
+    err = NotFoundError()
+    assert err.message == "Resource not found"
+
+def test_not_found_error_mensaje_personalizado():
+    err = NotFoundError("Email no encontrado")
+    assert err.message == "Email no encontrado"
+
+def test_unauthorized_error_mensaje_default():
+    err = UnauthorizedError()
+    assert err.message == "Unauthorized"
+
+def test_unauthorized_error_mensaje_personalizado():
+    err = UnauthorizedError("Token inválido")
+    assert err.message == "Token inválido"

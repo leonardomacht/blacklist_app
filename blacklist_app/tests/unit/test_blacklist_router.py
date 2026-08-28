@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import patch
 from flask import Flask
 from src.routes.blacklist_router import blacklist_bp
+from src.models.errors import ConflictError
 
 app = Flask(__name__)
 app.register_blueprint(blacklist_bp)
@@ -47,3 +48,20 @@ def test_ping(client):
     resp = client.get('/blacklists/ping')
     assert resp.status_code == 200
     assert resp.get_json()["message"] == "pong"
+
+def test_post_datos_invalidos_email_malo(client):
+    resp = client.post('/blacklists', headers=HEADERS, json={
+        "email": "no-es-un-email",
+        "app_uuid": "123e4567-e89b-12d3-a456-426614174000"
+    })
+    assert resp.status_code == 400
+
+
+def test_post_email_duplicado(client):
+    with patch("src.routes.blacklist_router.blacklist_service") as mock_service:
+        mock_service.add_to_blacklist.side_effect = ConflictError("Email ya existe")
+        resp = client.post('/blacklists', headers=HEADERS, json={
+            "email": "test@test.com",
+            "app_uuid": "123e4567-e89b-12d3-a456-426614174000"
+        })
+    assert resp.status_code == 409

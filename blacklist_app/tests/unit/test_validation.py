@@ -2,6 +2,8 @@ from unittest.mock import Mock
 import pytest
 from src.utils.validation import validate_uuid, get_client_ip
 from src.models.errors import BadRequestError
+from marshmallow import ValidationError
+from src.models.blacklist import validate_uuid_format
 
 
 def test_validate_uuid_con_uuid_valido():
@@ -32,3 +34,7 @@ def test_get_client_ip_sin_ip_disponible():
     request.headers.get.return_value = None
     request.remote_addr = None
     assert get_client_ip(request) == "unknown"  
+
+def test_validate_uuid_format_invalido():
+    with pytest.raises(ValidationError):
+        validate_uuid_format("no-es-uuid")

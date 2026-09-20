@@ -1,0 +1,196 @@
+{
+  "info": {
+    "name": "Blacklist App",
+    "description": "Colección de pruebas para el microservicio de lista negra global de emails.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5001",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "C74fUu6v3b_nnHh9termmKUwlU6wExFQcNmCM08eabU",
+      "type": "string"
+    },
+    {
+      "key": "email_prueba",
+      "value": "test@test.com",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Salud del servicio",
+      "item": [
+        {
+          "name": "Ping",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/blacklists/ping",
+              "host": ["{{base_url}}"],
+              "path": ["blacklists", "ping"]
+            },
+            "description": "No requiere autenticación. Debe responder {\"message\": \"pong\"}."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Agregar a blacklist (POST)",
+      "item": [
+        {
+          "name": "Agregar email - caso exitoso",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email_prueba}}\",\n  \"app_uuid\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"blocked_reason\": \"spam\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/blacklists",
+              "host": ["{{base_url}}"],
+              "path": ["blacklists"]
+            },
+            "description": "Debe responder 201 con el email agregado."
+          }
+        },
+        {
+          "name": "Agregar email - sin motivo (opcional)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"otro@test.com\",\n  \"app_uuid\": \"123e4567-e89b-12d3-a456-426614174000\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/blacklists",
+              "host": ["{{base_url}}"],
+              "path": ["blacklists"]
+            },
+            "description": "blocked_reason es opcional. Debe responder 201."
+          }
+        },
+        {
+          "name": "Agregar email - sin autenticacion",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email_prueba}}\",\n  \"app_uuid\": \"123e4567-e89b-12d3-a456-426614174000\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/blacklists",
+              "host": ["{{base_url}}"],
+              "path": ["blacklists"]
+            },
+            "description": "Sin header Authorization. Debe responder 401."
+          }
+        },
+        {
+          "name": "Agregar email - UUID invalido",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email_prueba}}\",\n  \"app_uuid\": \"no-es-un-uuid\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/blacklists",
+              "host": ["{{base_url}}"],
+              "path": ["blacklists"]
+            },
+            "description": "app_uuid con formato invalido. Debe responder 400."
+          }
+        },
+        {
+          "name": "Agregar email - duplicado",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email_prueba}}\",\n  \"app_uuid\": \"123e4567-e89b-12d3-a456-426614174000\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/blacklists",
+              "host": ["{{base_url}}"],
+              "path": ["blacklists"]
+            },
+            "description": "Ejecutar despues de 'caso exitoso' con el mismo email. Debe responder 409."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Consultar blacklist (GET)",
+      "item": [
+        {
+          "name": "Consultar email - existe en la lista",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/blacklists/{{email_prueba}}",
+              "host": ["{{base_url}}"],
+              "path": ["blacklists", "{{email_prueba}}"]
+            },
+            "description": "Ejecutar despues de agregar el email. Debe responder 200 con is_blacklisted: true."
+          }
+        },
+        {
+          "name": "Consultar email - no existe en la lista",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/blacklists/nadie_1234@test.com",
+              "host": ["{{base_url}}"],
+              "path": ["blacklists", "nadie_1234@test.com"]
+            },
+            "description": "Debe responder 200 con is_blacklisted: false y blocked_reason nulo."
+          }
+        },
+        {
+          "name": "Consultar email - sin autenticacion",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/blacklists/{{email_prueba}}",
+              "host": ["{{base_url}}"],
+              "path": ["blacklists", "{{email_prueba}}"]
+            },
+            "description": "Sin header Authorization. Debe responder 401."
+          }
+        }
+      ]
+    }
+  ]
+}

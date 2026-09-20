@@ -25,3 +25,42 @@ jobs:
       - name: Correr pruebas con cobertura
         working-directory: ./blacklist_app
         run: poetry run pytest --cov=src --cov-report=term-missing --cov-fail-under=90
+  pruebas_integracion:
+    name: Pruebas de integración
+    needs: job1
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v2
+
+      - name: Crear archivo .env para Docker
+        working-directory: ./blacklist_app
+        run: echo "BEARER_TOKEN=${{ secrets.BEARER_TOKEN }}" > .env
+
+      - name: Levantar la aplicación con Docker Compose
+        working-directory: ./blacklist_app
+        run: docker compose up --build -d
+
+      - name: Esperar a que el servicio esté disponible
+        run: |
+          for i in {1..20}; do
+            if curl -s http://localhost:5001/blacklists/ping; then
+              echo "Servicio disponible"
+              break
+            fi
+            echo "Esperando al servicio..."
+            sleep 3
+          done
+
+      - name: Instalar Newman
+        run: npm install -g newman
+
+      - name: Ejecutar la colección de Postman con Newman
+        run: >
+          newman run blacklist_app/postman/blacklist_app.postman_collection.json
+          --env-var "token=${{ secrets.BEARER_TOKEN }}"
+
+      - name: Apagar los contenedores
+        if: always()
+        working-directory: ./blacklist_app
+        run: docker compose down -v

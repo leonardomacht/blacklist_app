@@ -39,7 +39,7 @@ COPY --from=base /app /app
 COPY ./src /app/src
 
 # Crea el usuario y el grupo noroot
-RUN groupadd -r noroot && useradd -r -g noroot noroot
+RUN groupadd -r -g 10001 noroot && useradd -r -u 10001 -g noroot noroot
 
 # Le damos la propiedad de la carpeta /app al usuario noroot
 RUN chown -R noroot:noroot /app
@@ -51,5 +51,7 @@ USER noroot
 EXPOSE 8080
 
 # Command to run the application
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8080", "src.main:app"]
-
+# --preload imports the app (and runs create_tables) once in the master
+# process before forking workers, avoiding a race where multiple workers
+# call db.create_all() concurrently against an empty database.
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8080", "--preload", "src.main:app"]
